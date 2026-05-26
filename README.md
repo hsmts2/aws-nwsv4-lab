@@ -6,6 +6,8 @@
 
 このリポジトリでは、書籍で構築する AWS ネットワークおよびサーバー構成を CloudFormation テンプレートとして管理します。
 
+
+
 ## 作成する主なAWSリソース
 
 - VPC
@@ -18,6 +20,9 @@
 - IAM ロール
 - WEBサーバー用 EC2 インスタンス
 - DBサーバー用 EC2 インスタンス
+
+
+
 
 ## ディレクトリ構成
 
@@ -32,4 +37,33 @@
 │   └── aws-nwsv4-architecture.png
 └── docs/
     └── notes.md
+```
+
+CloudFormation テンプレート
+templates/aws-nwsv4.yaml
+
+
+## 構成図
+diagrams/aws-nwsv4-architecture.png
+
+
+## デプロイ例
+```shell
+aws cloudformation create-stack \
+  --stack-name aws-nwsv4-lab \
+  --template-body file://templates/aws-nwsv4.yaml \
+  --parameters file://parameters/aws-nwsv4-lab.example.json \
+  --capabilities CAPABILITY_NAMED_IAM
+```
+
+
+## 削除例
+```shell
+aws cloudformation delete-stack \
+  --stack-name aws-nwsv4-lab
+```
+
+## 注意事項
+- .pem ファイルはリポジトリにアップロードしないでください。
+- AWSアクセスキー、シークレットキー、DBパスワードなどの機密情報は記載しないでください。
 
