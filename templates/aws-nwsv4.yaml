@@ -1,1 +1,268 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: WEB server and DB server environment
 
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 key pair name
+
+  MyIpCidr:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: SSH access source CIDR
+
+Resources:
+  VpcArea:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: VPC領域
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: test-internet-gateway
+
+  AttachInternetGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VpcArea
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VpcArea
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: ap-northeast-1d
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: パブリックサブネット
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VpcArea
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: ap-northeast-1d
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: プライベートサブネット
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VpcArea
+      Tags:
+        - Key: Name
+          Value: パブリックルートテーブル
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachInternetGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  NatGatewayEip:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: test-nat-gateway-eip
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      AllocationId: !GetAtt NatGatewayEip.AllocationId
+      Tags:
+        - Key: Name
+          Value: test-nat-gateway
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VpcArea
+      Tags:
+        - Key: Name
+          Value: プライベートルートテーブル
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+  WebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: WEB-SG
+      GroupDescription: WEB-SG
+      VpcId: !Ref VpcArea
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref MyIpCidr
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: WEB-SG
+
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: DB-SG
+      GroupDescription: DB-SG
+      VpcId: !Ref VpcArea
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref WebSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourceSecurityGroupId: !Ref WebSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: DB-SG
+
+  EicSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: EIC-SG
+      GroupDescription: EIC-SG
+      VpcId: !Ref VpcArea
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: EIC-SG
+
+  Ec2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EC2_Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - Key: Name
+          Value: EC2_Role
+
+  Ec2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: EC2_Role
+      Roles:
+        - !Ref Ec2Role
+
+  WebServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref Ec2InstanceProfile
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref WebSecurityGroup
+      PrivateIpAddress: 10.0.1.10
+      Tags:
+        - Key: Name
+          Value: WEBサーバー
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          dnf update -y
+          dnf install -y httpd php php-mysqli mariadb105
+          systemctl enable httpd
+          systemctl start httpd
+
+  DbServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      InstanceType: t3.micro
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref Ec2InstanceProfile
+      SubnetId: !Ref PrivateSubnet
+      SecurityGroupIds:
+        - !Ref DbSecurityGroup
+      PrivateIpAddress: 10.0.2.10
+      Tags:
+        - Key: Name
+          Value: DBサーバー
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          dnf update -y
+          dnf install -y mariadb105-server
+          systemctl enable mariadb
+          systemctl start mariadb
+
+Outputs:
+  VpcId:
+    Value: !Ref VpcArea
+
+  PublicSubnetId:
+    Value: !Ref PublicSubnet
+
+  PrivateSubnetId:
+    Value: !Ref PrivateSubnet
+
+  WebServerId:
+    Value: !Ref WebServer
+
+  DbServerId:
+    Value: !Ref DbServer
+
+  WebServerPublicIp:
+    Value: !GetAtt WebServer.PublicIp
+
+  WebServerPrivateIp:
+    Value: !GetAtt WebServer.PrivateIp
+
+  DbServerPrivateIp:
+    Value: !GetAtt DbServer.PrivateIp
