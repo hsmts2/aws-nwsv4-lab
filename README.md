@@ -39,8 +39,8 @@
     └── notes.md
 ```
 
-CloudFormation テンプレート
-templates/aws-nwsv4.yaml
+## CloudFormation テンプレート
+CloudFormation テンプレート: [templates/aws-nwsv4.yaml](templates/aws-nwsv4.yaml)
 
 
 ## 構成図
