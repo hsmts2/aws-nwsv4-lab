@@ -2,31 +2,67 @@
 
 「基礎からのネットワーク&サーバー構築［改訂4版］」の学習内容を、AWS CloudFormation で再現するためのリポジトリです。
 
+本リポジトリは、書籍で学習した AWS ネットワーク・サーバー構成を、自分の理解に基づいて Infrastructure as Code として整理したものです。
+書籍内容を転載するものではなく、学習した構成を CloudFormation テンプレートとして再現・管理することを目的としています。
 
 ---
 
+<br>
 
 ## 概要
 
 本リポジトリでは、書籍で構築する AWS ネットワーク・サーバー構成を CloudFormation テンプレートとして管理します。
 
-IaC（Infrastructure as Code）として定義することで、AWS リソース構成の再現性、変更管理、レビューを容易にすることを目的としています。
+手順ベースで作成した AWS リソースを IaC（Infrastructure as Code）として定義することで、構成の再現性、変更管理、レビュー、再デプロイを容易にすることを目的としています。
 
 > **学習目的**: VPC 設計、パブリックサブネット、プライベートサブネット、Internet Gateway、NAT Gateway、セキュリティグループ、EC2、Web / DB 分離構成の理解
 
+---
+
+<br>
+
+## 対象書籍と学習範囲
+
+| 項目        | 内容                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------ |
+| 対象書籍      | 基礎からのネットワーク&サーバー構築［改訂4版］                                                                   |
+| 学習テーマ     | AWS 上でのネットワーク・サーバー構築                                                                       |
+| 主な学習対象    | VPC / EC2 / Internet Gateway / NAT Gateway / Security Group / Apache / MariaDB / WordPress |
+| 作成するAWS構成 | Web サーバー + DB サーバーの2層構成                                                                    |
+| IaC       | AWS CloudFormation                                                                         |
+| テンプレート形式  | YAML                                                                                       |
+| リージョン     | `ap-northeast-1`                                                                           |
+
+このリポジトリでは、書籍で手動構築した内容をもとに、CloudFormation で同等の学習環境を再現できるようにしています。
 
 ---
 
+<br>
+
+## リポジトリの目的
+
+このリポジトリの目的は、単に CloudFormation テンプレートを保存することではなく、以下の観点を整理することです。
+
+* AWS ネットワーク構成をコードとして再現する
+* 手動構築した内容を CloudFormation に置き換える
+* VPC、サブネット、ルートテーブル、セキュリティグループの関係を整理する
+* Web サーバーと DB サーバーを分離した基本的な構成を理解する
+* GitHub 上で学習成果をポートフォリオとして管理する
+* README、構成図、パラメータファイル、`.gitignore` を含めたリポジトリ運用を学ぶ
+
+---
+
+<br>
 
 ## アーキテクチャ
 
 以下は、本リポジトリの CloudFormation テンプレートで作成する AWS 構成図です。
 
-![Architecture](diagrams/aws-nwsv4-architecture.png)
-
+<img src="./diagrams/aws-nwsv4-architecture.png" alt="Architecture" width="900">
 
 ---
 
+<br>
 
 ## 作成される主な AWS リソース
 
@@ -43,9 +79,9 @@ IaC（Infrastructure as Code）として定義することで、AWS リソース
 | EC2 Web サーバー     | Amazon Linux 2023                      |
 | EC2 DB サーバー      | Amazon Linux 2023                      |
 
-
 ---
 
+<br>
 
 ## ディレクトリ構成
 
@@ -62,9 +98,9 @@ IaC（Infrastructure as Code）として定義することで、AWS リソース
     └── notes.md
 ```
 
-
 ---
 
+<br>
 
 ## CloudFormation テンプレート
 
@@ -74,9 +110,11 @@ CloudFormation テンプレートは以下に格納しています。
 templates/aws-nwsv4.yaml
 ```
 
+このテンプレートでは、VPC、サブネット、Internet Gateway、NAT Gateway、ルートテーブル、セキュリティグループ、IAM ロール、EC2 インスタンスなどをまとめて作成します。
 
 ---
 
+<br>
 
 ## パラメータファイル
 
@@ -111,9 +149,9 @@ cp parameters/aws-nwsv4-lab.example.json parameters/aws-nwsv4-lab.json
 
 > `parameters/aws-nwsv4-lab.json` は実環境用のファイルのため、GitHub にはコミットしない運用とします。
 
-
 ---
 
+<br>
 
 ## 前提条件
 
@@ -126,9 +164,9 @@ cp parameters/aws-nwsv4-lab.example.json parameters/aws-nwsv4-lab.json
 * 既存の EC2 キーペア
 * CloudFormation、EC2、VPC、IAM 関連リソースを作成・更新・削除できる IAM 権限
 
-
 ---
 
+<br>
 
 ## 使い方
 
@@ -173,6 +211,7 @@ aws cloudformation delete-stack \
 
 ---
 
+<br>
 
 ## セキュリティ
 
@@ -187,19 +226,35 @@ aws cloudformation delete-stack \
 | 実環境用パラメータファイル                 | IP アドレスや環境固有情報を含む可能性があるため |
 | DB パスワード                      | 認証情報漏洩防止のため               |
 
-
 これらは `.gitignore` で除外することを推奨します。
-万一、AWS アクセスキーや秘密鍵をコミットした場合は、該当キーを即座に無効化・ローテーションしてください。
 
+万一、AWS アクセスキーや秘密鍵をコミットした場合は、該当キーを即座に無効化・ローテーションしてください。
 
 ---
 
+<br>
 
 ## 補足メモ
 
-学習メモや補足手順は以下にまとめます。
-`Confluenceリンクを挿し入れ`
+学習メモや補足手順は、以下にまとめます。
+
+```text
+docs/notes.md
+```
+
+また、詳細な学習記録や手順書は Confluence 側に整理します。
+
+```text
+Confluenceリンクを挿し入れ
+```
 
 ---
 
+<br>
 
+## 参考
+
+* 基礎からのネットワーク&サーバー構築［改訂4版］
+* [AWS CloudFormation ユーザーガイド](https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/)
+* [Amazon VPC ユーザーガイド](https://docs.aws.amazon.com/ja_jp/vpc/latest/userguide/)
+* [AWS CLI コマンドリファレンス](https://docs.aws.amazon.com/cli/latest/reference/)
