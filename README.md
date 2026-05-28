@@ -1,8 +1,5 @@
 # aws-nwsv4-lab
 
-![CloudFormation](https://img.shields.io/badge/IaC-CloudFormation-orange?style=flat-square\&logo=amazonaws)
-![AWS](https://img.shields.io/badge/Cloud-AWS-232F3E?style=flat-square\&logo=amazonaws)
-
 「基礎からのネットワーク&サーバー構築［改訂4版］」の学習内容を、AWS CloudFormation で再現するためのリポジトリです。
 
 
@@ -125,7 +122,7 @@ cp parameters/aws-nwsv4-lab.example.json parameters/aws-nwsv4-lab.json
 * AWS CLI v2
 * AWS CLI の認証設定済み環境
 * デプロイ先 AWS アカウント
-* デプロイ先リージョン: `ap-northeast-1` 推奨
+* デプロイ先リージョン: `ap-northeast-1`
 * 既存の EC2 キーペア
 * CloudFormation、EC2、VPC、IAM 関連リソースを作成・更新・削除できる IAM 権限
 
@@ -173,8 +170,6 @@ aws cloudformation delete-stack \
   --region ap-northeast-1
 ```
 
-> NAT Gateway や Elastic IP など、料金が発生するリソースを作成します。検証完了後は不要な課金を避けるため、スタックを削除してください。
-
 
 ---
 
@@ -192,8 +187,8 @@ aws cloudformation delete-stack \
 | 実環境用パラメータファイル                 | IP アドレスや環境固有情報を含む可能性があるため |
 | DB パスワード                      | 認証情報漏洩防止のため               |
 
-これらは `.gitignore` で除外することを推奨します。
 
+これらは `.gitignore` で除外することを推奨します。
 万一、AWS アクセスキーや秘密鍵をコミットした場合は、該当キーを即座に無効化・ローテーションしてください。
 
 
@@ -203,19 +198,8 @@ aws cloudformation delete-stack \
 ## 補足メモ
 
 学習メモや補足手順は以下にまとめます。
-
-```text
-docs/notes.md
-```
-
+`Confluenceリンクを挿し入れ`
 
 ---
 
-
-## 参考
-
-* 基礎からのネットワーク&サーバー構築［改訂4版］
-* [AWS CloudFormation ユーザーガイド](https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/)
-* [Amazon VPC ユーザーガイド](https://docs.aws.amazon.com/ja_jp/vpc/latest/userguide/)
-* [AWS CLI コマンドリファレンス](https://docs.aws.amazon.com/cli/latest/reference/)
 
