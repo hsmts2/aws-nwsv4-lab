@@ -1,1 +1,30 @@
+# SSH private keys
+*.pem
+*.key
+*.ppk
 
+# AWS credentials / secrets
+*accesskey*
+*secretkey*
+*credentials*
+.env
+.env.*
+
+# Local parameter files
+parameters/*-lab.json
+!parameters/*.example.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
