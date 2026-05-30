@@ -1,4 +1,4 @@
-# aws-nwsv4-lab
+# aws-nwsv-lab
 
 「基礎からのネットワーク&サーバー構築［改訂4版］」の学習内容を、AWS CloudFormation で再現するためのリポジトリです。
 
